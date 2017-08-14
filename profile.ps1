@@ -1,13 +1,14 @@
+$ScriptRootPath = "c:\dev\POSH"
 Set-Location c:\
 
 # Import modules
-Import-Module $PSScriptRoot\Modules\File-Search.psm1
-Import-Module $PSScriptRoot\Modules\Network.psm1
-Import-Module $PSScriptRoot\Modules\Miscellaneous.psm1 -DisableNameChecking
+Import-Module $ScriptRootPath\Modules\File-Search.psm1
+Import-Module $ScriptRootPath\Modules\Network.psm1
+Import-Module $ScriptRootPath\Modules\Miscellaneous.psm1 -DisableNameChecking
 
 # Import data type so that we can get a prettier file size
 # e.g. gci|select mode,lastwritetime,filesize,name
-Update-TypeData -AppendPath $PSScriptRoot\Modules\shrf.ps1xml
+Update-TypeData -AppendPath $ScriptRootPath\Modules\shrf.ps1xml
 
 #(Get-Host).UI.RawUI.BackgroundColor = "DarkBlue"
 (Get-Host).UI.RawUI.ForegroundColor = "Gray"
@@ -31,10 +32,15 @@ function prompt
     return " "
 }
 
-Import-Alias $PSScriptRoot\Aliases.txt -Force
-$transcriptFile = "$PSScriptRoot\log\transcript$($(get-date).toString('yyyyMMdd-HHmmss')).log"
+Import-Alias $ScriptRootPath\Aliases.txt -Force
+If (-not (Test-Path $ScriptRootPath\log))
+{
+    Write-Warning "Transcript directory '$ScriptRootPath\log' does not exist.  Creating."
+    New-Item -ItemType Directory -Path "$ScriptRootPath\log" | Out-Null
+}
+$transcriptFile = "$ScriptRootPath\log\transcript$($(get-date).toString('yyyyMMdd-HHmmss')).log"
 ##Write-Host ('Recording transcript to "{0}".' -f ($transcriptFile))
 Start-Transcript $transcriptFile
 
 Write-Host " "
-D:\Tools\Scripts\UpTime.ps1
+& "$ScriptRootPath\UpTime.ps1"

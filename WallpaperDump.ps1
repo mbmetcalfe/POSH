@@ -24,10 +24,12 @@ param (
     $MinimumHeight = 1050,
     $NumberOfImages = 5,
     $RetentionDays = 7,
-    [string]$DestinationPath = "D:\Media\Pictures\BackgroundDump"
+    [string]$DestinationPath = [environment]::getfolderpath("MyPictures")+"\BackgroundDump"
 )
-Import-Module $PSScriptRoot\Image-Functions.psm1 -Force
+Import-Module $PSScriptRoot\Modules\Image-Functions.psm1 -Force
 Import-Module BitsTransfer
+
+"path: $DestinationPath"
 
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
@@ -37,7 +39,6 @@ $NET_ADAPTER_NAME = 'Intel(R) Dual Band Wireless-AC 7265'
 $subreddits = @("BackgroundArt", "EarthPorn", "Breathless", "Wallpapers", "SpacePorn", "BigWallpapers")
 
 $InformationPreference = "Continue"
-#$DebugPreference = "Continue"
 
 # create the destination folder if it does not exist.
 if (!(Test-Path $DestinationPath))
@@ -105,17 +106,17 @@ foreach ($subreddit in $subreddits)
 }
 
 # Remove any images that are below the desired resolution
-(Get-ChildItem -Path $DestinationPath -Filter *.jpg).FullName | % {
-    $fileDate = (Get-ChildItem $_).CreationTime;
-    $retentionDate = (Get-date).AddDays($RetentionDays * -1);
-
-    $img = [Drawing.Image]::FromFile($_);
-    if (($img.Width -lt $MinimumWidth -OR $img.Height -lt $MinimumHeight) -or ($fileDate -lt $retentionDate))
-    {
-        Write-Debug (("{0} is smaller than {1} x {2} or is older than {3} days.") -f ($_, $MinimumHeight, $MinimumWidth, $RetentionDays))
-        Remove-Item $_ -Force -ErrorAction SilentlyContinue
-    }
-}
+#(Get-ChildItem -Path $DestinationPath -Filter *.jpg).FullName | % {
+#    $fileDate = (Get-ChildItem $_).CreationTime;
+#    $retentionDate = (Get-date).AddDays($RetentionDays * -1);
+#
+#    $img = [Drawing.Image]::FromFile($_);
+#    if (($img.Width -lt $MinimumWidth -OR $img.Height -lt $MinimumHeight) -or ($fileDate -lt $retentionDate))
+#    {
+#        Write-Debug (("{0} is smaller than {1} x {2} or is older than {3} days.") -f ($_, $MinimumHeight, $MinimumWidth, $RetentionDays))
+#        Remove-Item $_ -Force -ErrorAction SilentlyContinue
+#    }
+#}
 
 #region APOD Image retrieval
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -133,6 +134,10 @@ try
             $dateFilename = (Get-Date -Format "yyyyMMdd")
             $fileName = ("{0}\{1}-APOD_{2}") -f ($DestinationPath, $dateFilename, $APODFilename)
             Start-BitsTransfer -Source $apodContent.hdurl -Destination $fileName -ErrorAction SilentlyContinue -DisplayName "NASA APOD image: $apodContent.title"
+        }
+        else
+        {
+            Write-Host "APOD content type is" $apodContent.media_type -ForegroundColor Yellow
         }
     }
     catch

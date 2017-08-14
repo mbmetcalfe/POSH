@@ -17,11 +17,11 @@ The amount of time, in seconds, between each interval of moving the mouse.
 Whether or not to display output.  If true, no output is displayed.
 
 .EXAMPLE
-PS C:\> Prevent-Idle -Duration 1 -ActionTime 5
+PS C:\> Block-Idle -Duration 1 -ActionTime 5
 Will move the mouse every 5 seconds for 1 minute.
 
 .NOTES
-NAME        :  Prevent-Idle
+NAME        :  Block-Idle
 VERSION     :  1.0   
 LAST UPDATED:  6/5/2017
 AUTHOR      :  Michael Metcalfe
@@ -30,7 +30,7 @@ None
 .OUTPUTS
 None
 #>
-Function Prevent-Idle
+function Block-Idle
 {
     [CmdletBinding()]
     param (
@@ -59,7 +59,95 @@ Function Prevent-Idle
 
         $newX = $Pos.X + $newXOffset
         $newY = $Pos.Y + $newYOffset
-        Write-Debug (("Still there? ({0}, {1}) -> ({2}, {3}).") -f ($Pos.X, $Pos.Y, $newX, $newY))
+        Write-Debug (("({0}, {1}) -> ({2}, {3})") -f ($Pos.X,$Pos.Y,$newX,$newY))
         [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point(($newX) , ($newY))
     }
 }
+function Show-Pause
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory=$true)]
+        [string]$Message
+    )
+
+    # Check if running Powershell ISE
+    if ($psISE)
+    {
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.MessageBox]::Show("$Message")
+    }
+    else
+    {
+        Write-Host "$Message " -ForegroundColor Yellow -NoNewline
+        $x = $host.ui.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        Write-Host ""
+    }
+}
+
+<#
+.SYNOPSIS
+Clear variables and modules.
+
+.DESCRIPTION
+This cmdlet will clear all variables and modules from the current console session.
+
+.PARAMETER ClearVariables
+Clear variables from the current session.
+
+.PARAMETER  ClearModules
+Clear modules from the current session.
+
+.EXAMPLE
+PS C:\> Clear-Session
+Will clear all variables and modules from the current console session.
+
+.EXAMPLE
+PS C:\> Clear-Session -ClearVariables
+Will clear all variables current console session.
+
+.NOTES
+NAME        :  Clear-Session
+VERSION     :  1.0   
+LAST UPDATED:  7/12/2017
+AUTHOR      :  Michael Metcalfe
+.INPUTS
+None
+.OUTPUTS
+None
+#>
+function Clear-Session()
+{
+    [CmdletBinding()]
+    param
+    (
+        [switch]$ClearVariables,
+        [switch]$ClearModules
+    )
+
+    # if neither parameter supplied, default to both enabled.
+    if (-not $ClearVariables -and -not $ClearModules)
+    {
+        $ClearVariables = $true
+        $ClearModules = $true
+    }
+
+    if ($ClearModules)
+    {
+        $moduleCount = (Get-Module | Measure).Count
+        Remove-Module *
+        $moduleCount = $moduleCount - ((Get-Module | Measure).Count)
+        Write-Host "$moduleCount modules cleared." -ForegroundColor Green
+    }
+
+    if ($ClearVariables)
+    {
+        Remove-Variable * -ErrorAction SilentlyContinue -Exclude "ClearVariables"
+        Write-Host "Variables cleared." -ForegroundColor Green
+    }
+    $error.Clear()
+}
+
+#ls *.log | Select-String @("^.{2,3}-\d{4,5}", "exit code: (1|2|3|4)")
+Export-ModuleMember -Function Block-Idle, Start-BuildThis, Show-Pause, Clear-Session, Mount-DATEDrive
