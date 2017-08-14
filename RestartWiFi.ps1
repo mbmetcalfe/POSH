@@ -1,0 +1,1 @@
+﻿Restart-NetAdapter -InterfaceDescription 'Intel(R) Dual Band Wireless-AC 7265' -Confirm:$false
