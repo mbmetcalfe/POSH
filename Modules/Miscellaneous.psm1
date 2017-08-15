@@ -140,13 +140,16 @@ function Clear-Session()
         $moduleCount = $moduleCount - ((Get-Module | Measure).Count)
         Write-Host "$moduleCount modules cleared." -ForegroundColor Green
     }
-
+    
     if ($ClearVariables)
     {
         Remove-Variable * -ErrorAction SilentlyContinue -Exclude "ClearVariables"
         Write-Host "Variables cleared." -ForegroundColor Green
     }
     $error.Clear()
+
+    Write-Host "Reloading profile: $profile" -ForegroundColor Yellow
+    & "$profile"
 }
 
 #ls *.log | Select-String @("^.{2,3}-\d{4,5}", "exit code: (1|2|3|4)")

@@ -5,6 +5,7 @@ Set-Location c:\
 Import-Module $ScriptRootPath\Modules\File-Search.psm1
 Import-Module $ScriptRootPath\Modules\Network.psm1
 Import-Module $ScriptRootPath\Modules\Miscellaneous.psm1 -DisableNameChecking
+Import-Module $ScriptRootPath\Modules\VAC-ACC.psm1
 
 # Import data type so that we can get a prettier file size
 # e.g. gci|select mode,lastwritetime,filesize,name
@@ -40,6 +41,14 @@ If (-not (Test-Path $ScriptRootPath\log))
 }
 $transcriptFile = "$ScriptRootPath\log\transcript$($(get-date).toString('yyyyMMdd-HHmmss')).log"
 ##Write-Host ('Recording transcript to "{0}".' -f ($transcriptFile))
+
+# Try and stop the transcript (if one is running)
+try
+{
+    Stop-Transcript | Out-Null
+}
+catch [System.InvalidOperationException]{}
+
 Start-Transcript $transcriptFile
 
 Write-Host " "
