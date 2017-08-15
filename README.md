@@ -16,11 +16,11 @@ $PSVersionTable.PSVersion
 ```
 
 You will see a table like this:
-
+```
 Major  Minor  Build  Revision
 -----  -----  -----  --------
 3      0      -1     -1
-
+```
 
 ### Installing
 
