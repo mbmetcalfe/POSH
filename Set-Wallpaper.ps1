@@ -151,7 +151,7 @@
 #---------------------------
 
 #MyPics Options
-[STRING]$PicturesPath = [environment]::getfolderpath("MyPictures")+"\Wallpaper"
+[STRING]$PicturesPath = [environment]::getfolderpath("MyPictures")+"\BackgroundDump"
 #[STRING]$PicturesPath = "C:\Users\mmetcalfe\Documents\Pictures\Wallpaper\DM"
 [BOOLEAN]$ResizeMyPics = $False  
 
