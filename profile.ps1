@@ -30,6 +30,7 @@ function prompt
     $host.ui.rawui.WindowTitle = $CurrentUser.Name + $Admin + "@" + $env:computername + " [" + $(get-location) + "]"
 
     Write-Host ("[ " + $(Get-Date).Tostring("HH:mm:ss") + " | " + $(Get-Location) + " ] $") -NoNewline -ForegroundColor Yellow 
+    & "$ScriptRootPath\UpTime.ps1" -Silent
     return " "
 }
 
