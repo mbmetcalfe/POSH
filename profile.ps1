@@ -27,7 +27,7 @@ Update-TypeData -AppendPath $ScriptRootPath\Modules\shrf.ps1xml
 (Get-Host).UI.RawUI.ForegroundColor = "Gray"
 (Get-Host).UI.RawUI.WindowTitle = "Michael's PowerShell"
 
-$HistoryFileName = "$env:USERPROFILE\documents\posh_history.xml"
+$HistoryFileName = $env:temp + "\posh_history.xml"
 
 # Get username and if they are part of the administrators group
 $Global:Admin=""
@@ -45,6 +45,8 @@ function prompt
     Get-History -Count 1000 | Export-Clixml -Path $HistoryFileName
 
     Write-Host ("[ " + $(Get-Date).Tostring("HH:mm:ss") + " | " + $(Get-Location) + " ] $") -NoNewline -ForegroundColor Yellow 
+
+    & "$ScriptRootPath\UpTime.ps1" -Silent
     return " "
 }
 
@@ -61,8 +63,14 @@ Write-Host " "
 if ($host.Name -eq 'Windows PowerShell ISE Host')
 {
     #ISE specific code here
+    # Close all the currently opened files -- keeps ISE from opening with the untitled document.
+    $null = while ($psISE.CurrentPowerShellTab.Files -ne $null)
+    {
+        $file = $psISE.CurrentPowerShellTab.Files[0]
+        $psISE.CurrentPowerShellTab.Files.Remove($file)
+    }
 
-    $psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Edit PowerShell Profile", { psedit  C:\Users\mmetcalfe\Documents\WindowsPowerShell\profile.ps1}, $null) | Out-Null
+    $psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Edit PowerShell Profile", { psedit  $profile}, $null) | Out-Null
     
     # Import modules we only want in Powershell ISE
     #Import-Module "C:\dev\Scripts\PowerShell Modules\ISEScriptingGeek\ISEScriptingGeek.psd1"
@@ -70,11 +78,11 @@ if ($host.Name -eq 'Windows PowerShell ISE Host')
     Import-Module "$ScriptRootPath\Modules\CommentSelectedLines.psm1" -DisableNameChecking
 
     # And, let's restore the last opened files too
-    Import-ISEState -FileName "$env:USERPROFILE\documents\files.isexml"
+    Import-ISEState -FileName ([Environment]::GetFolderPath("MyDocuments") + "\files.isexml")
 
     $DebugPreference = "Continue"
-    $psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Clear Variables and Modules", { Remove-Variable * -ErrorAction SilentlyContinue; Remove-Module *; $error.Clear(); Clear-Host; Write-Host "All variables and modules cleared." -ForegroundColor Green}, $null) | Out-Null
-    $psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Clear Console",{Clear-Host},"Ctrl+L") | Out-Null
+    $psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Clear Variables and Modules", { Clear-Session -ReloadProfile }, $null) | Out-Null
+    $psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Clear Console", {Clear-Host}, "Ctrl+L") | Out-Null
 }
 elseif ($host.Name -eq 'ConsoleHost')
 {

@@ -291,7 +291,7 @@ function Uncomment-IseSelectedLines([switch]$DoNothingWhenNotCertainOfWhichLines
 
 
 #==========================================================
-# Add ISE Add-ons.
+# Add ISE Add-ons menus.
 #==========================================================
 
 # Add a new option in the Add-ons menu to comment all selected lines.
