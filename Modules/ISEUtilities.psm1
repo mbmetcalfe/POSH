@@ -138,18 +138,21 @@ function Close-AllISEFiles
     .SYNOPSIS
         Close all ISE Files except for untitled files. If You have multiple PowerShellTabs, close files in all tabs.
     #>
-    foreach ($tab in $psISE.PowerShellTabs)
-    {
-#        $psISE.PowerShellTabs.Remove($tab)
-        foreach ($file in $tab.Files)
-        {
-#            if (!$file.IsUntitled)
-#            {
-#                $file.Save()
-#            }
+#    foreach ($tab in $psISE.PowerShellTabs)
+#    {
+##        $psISE.PowerShellTabs.Remove($tab)
+#        foreach ($file in $tab.Files)
+#        {
+##            if (!$file.IsUntitled)
+##            {
+##                $file.Save()
+##            }
             
-        }
-    }
+#        }
+#    }
+
+    Save-AllISEFiles
+    $psISE.CurrentPowerShellTab.Files.Clear()
 }
 
 function Export-ISEState
@@ -258,6 +261,12 @@ function Import-ISEState
         [string]$FileName
     )
 
+    if (!(Test-Path $FileName))
+    {
+        Write-Error "ISE State File, '$FileName', does not exist."
+        return ""
+    }
+
     Write-Host "Restoring session from $FileName..." -ForegroundColor DarkMagenta
     <# currentTabs is used to keep track of the tabs currently opened.
         If “PowerShellTab 1” is opened and $FileName contains files for it, we
@@ -341,7 +350,7 @@ function Import-ISEState
 # Add a new option in the Add-ons menu to save session.
 if (!($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus | Where-Object { $_.DisplayName -eq "Save ISE Session" }))
 {
-    $psise.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Save ISE Session", {Export-ISEState -FileName "$env:USERPROFILE\documents\files.isexml"} , "Ctrl+Alt+S") | Out-Null
+    $psise.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Save ISE Session", {Export-ISEState -FileName ([Environment]::GetFolderPath("MyDocuments") + "\files.isexml")} , "Ctrl+Alt+S") | Out-Null
 }
 
 # Add a new option in the Add-ons menu to save session.
@@ -353,7 +362,7 @@ if (!($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus | Where-Object { $_.Displa
 # Add a new option in the Add-ons menu to restore session.
 if (!($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus | Where-Object { $_.DisplayName -eq "Restore ISE Session" }))
 {
-    $psise.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Restore ISE Session", {Import-ISEState -FileName "$env:USERPROFILE\documents\files.isexml"} , "Ctrl+Alt+R") | Out-Null
+    $psise.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Restore ISE Session", {Import-ISEState -FileName ([Environment]::GetFolderPath("MyDocuments") + "\files.isexml")} , "Ctrl+Alt+R") | Out-Null
 }
 
 # Add a new option in the Add-ons menu to open a specific session.

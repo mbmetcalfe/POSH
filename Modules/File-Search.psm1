@@ -40,9 +40,10 @@ param (
     [string]$Path = "",
     [string]$Include = "('*.dpr', '*.js', '*.xml', '*.xsl', '*.xslt', '*.pck', '*.sql', '*.trg', '*.dql', '*.dpr', '*.dfm', '*.pas', '*.inc', '*.cjs', '*.htc', '*.scr', '*.thw', '*.mule')",
     [switch]$CaseSensitive,
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true, Position=1)]
     [string]$Text,
-    [string]$Results = ""
+    [string]$Results = "",
+    [switch]$ShowFound = $true
 )
 
     # If no path specified, assume current working directory
@@ -69,8 +70,26 @@ param (
     'Search results for: "{0}" in "{1}".' -f ($Text, $Path) | Out-File $Results
 
     Write-Host ('Searching for: "{0}" in "{1}".  Log: "{2}"' -f ($Text, $Path, $Results))
+    if ($ShowFound)
+    {
+        gci -recurse -include ('*.dpr', '*.js', '*.xml', '*.xsl', '*.xslt', '*.pck', '*.sql', '*.trg', '*.dql', '*.dpr', '*.dfm', '*.pas', '*.inc', '*.cjs', '*.htc', '*.scr', '*.thw', '*.ps1', '*.psm1', '*.mule', '*.htm?') -EA SilentlyContinue| Select-String -CaseSensitive:$CaseSensitive -pattern $Text | Out-File -Append -FilePath $Results
+<#        foreach ($file in $files)
+        {
+            if (Test-Path $file)
+            {
+                "--------------------------------------------------------------------------------" | Out-File -Append -FilePath $outputFileName
+                $file | Out-File -Append -FilePath $outputFileName
+                "--------------------------------------------------------------------------------" | Out-File -Append -FilePath $outputFileName
+                gc $file | Select-String -Pattern "ICD10|ICD10_RELATED|ICD9|ICD9_CATEGORY|ICD9_SERVICE_CODE_MAPPING|ICD9_10|ICD9_10_MAP|ICD_GORUPS|ICD_RELATED|ICD_TYPE" | Out-File -Append -FilePath $outputFileName
+            }
+        }
+#>
+    }
+    else
+    {
     gci -recurse -include ('*.dpr', '*.js', '*.xml', '*.xsl', '*.xslt', '*.pck', '*.sql', '*.trg', '*.dql', '*.dpr', '*.dfm', '*.pas', '*.inc', '*.cjs', '*.htc', '*.scr', '*.thw', '*.ps1', '*.psm1', '*.mule') -EA SilentlyContinue| Select-String -CaseSensitive:$CaseSensitive -pattern $Text | Group-Object Path | Select-Object Name | Format-Table -Property Name -AutoSize | Out-String -Width 4096 | Out-File -Append $Results
     #gci -recurse -include:$Include -EA SilentlyContinue| Select-String -CaseSensitive:$CaseSensitive -pattern $Text | Group-Object Path | Select-Object Name | Format-Table -Wrap | Out-File -Append $Results
+    }
 
     # Show search results.
     if (Test-Path $Results)
@@ -117,7 +136,7 @@ function Find-Log
 {
 param (
     [string]$Path = "",
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true, Position=1)]
     [string]$Text,
     [string]$Results = "",
     [switch]$CaseSensitive
@@ -184,7 +203,7 @@ function Find-File
 
 param (
     [string]$Path = "",
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true, Position=1)]
     [string]$Text,
     [string]$Results = ""
  )
@@ -223,4 +242,4 @@ param (
     }
 }
 
-Export-ModuleMember -Function Find-File, Find-Log, Find-Code
+Export-ModuleMember -function Find-Log, Find-Code, Find-File -alias fl, fc, ff

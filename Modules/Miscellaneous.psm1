@@ -87,35 +87,38 @@ function Show-Pause
 }
 
 <#
-.SYNOPSIS
-Clear variables and modules.
+    .SYNOPSIS
+    Clear variables and modules.
 
-.DESCRIPTION
-This cmdlet will clear all variables and modules from the current console session.
+    .DESCRIPTION
+    This cmdlet will clear all variables and modules from the current console session.
 
-.PARAMETER ClearVariables
-Clear variables from the current session.
+    .PARAMETER ClearVariables
+    Clear variables from the current session.
 
-.PARAMETER  ClearModules
-Clear modules from the current session.
+    .PARAMETER  ClearModules
+    Clear modules from the current session.
 
-.EXAMPLE
-PS C:\> Clear-Session
-Will clear all variables and modules from the current console session.
+    .PARAMETER ReloadProfile
+    After clearing items, load the default PowerShell profile file.
 
-.EXAMPLE
-PS C:\> Clear-Session -ClearVariables
-Will clear all variables current console session.
+    .EXAMPLE
+    PS C:\> Clear-Session
+    Will clear all variables and modules from the current console session.
 
-.NOTES
-NAME        :  Clear-Session
-VERSION     :  1.0   
-LAST UPDATED:  7/12/2017
-AUTHOR      :  Michael Metcalfe
-.INPUTS
-None
-.OUTPUTS
-None
+    .EXAMPLE
+    PS C:\> Clear-Session -ClearVariables
+    Will clear all variables current console session.
+
+    .NOTES
+    NAME        :  Clear-Session
+    VERSION     :  1.0   
+    LAST UPDATED:  7/12/2017
+    AUTHOR      :  Michael Metcalfe
+    .INPUTS
+    None
+    .OUTPUTS
+    None
 #>
 function Clear-Session()
 {
@@ -123,7 +126,8 @@ function Clear-Session()
     param
     (
         [switch]$ClearVariables,
-        [switch]$ClearModules
+        [switch]$ClearModules,
+        [switch]$ReloadProfile
     )
 
     # if neither parameter supplied, default to both enabled.
@@ -148,9 +152,12 @@ function Clear-Session()
     }
     $error.Clear()
 
-    Write-Host "Reloading profile: $profile" -ForegroundColor Yellow
-    & "$profile"
+    if ($ReloadProfile)
+    {
+        Write-Host "Reloading profile: $profile" -ForegroundColor Yellow
+        & "$profile"
+    }
 }
 
 #ls *.log | Select-String @("^.{2,3}-\d{4,5}", "exit code: (1|2|3|4)")
-Export-ModuleMember -Function Block-Idle, Start-BuildThis, Show-Pause, Clear-Session, Mount-DATEDrive
+Export-ModuleMember -Function Block-Idle, Show-Pause, Clear-Session
