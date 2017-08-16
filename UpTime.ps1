@@ -26,7 +26,7 @@ $scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
 #region Default parameters
 $ConfigFileName = $scriptPath + "\UpTime.xml"
 
-Write-Debug ("Configuration file: {0}." -f ($ConfigFileName))
+Write-Verbose ("Configuration file: {0}." -f ($ConfigFileName))
 
 if (!(Test-Path $ConfigFileName))
 {
@@ -77,7 +77,7 @@ if (($ts.Days -gt $uptimeSettings.MaxUpTime.Days) -or
     ($ts.Days -eq $uptimeSettings.MaxUpTime.Days -and $ts.Hours -gt $uptimeSettings.MaxUpTime.Hours) -or
     ($ts.Days -eq $uptimeSettings.MaxUpTime.Days -and $ts.Hours -eq $uptimeSettings.MaxUpTime.Hours -and $ts.Minutes -gt $uptimeSettings.MaxUpTime.Minutes))
 {
-    Write-Debug "New max uptime achieved."
+    Write-Verbose "New max uptime achieved."
     $uptimeSettings.MaxUpTime.Days = [string]$ts.Days
     $uptimeSettings.MaxUpTime.Hours = [string]$ts.Hours
     $uptimeSettings.MaxUpTime.Minutes = [string]$ts.Minutes
