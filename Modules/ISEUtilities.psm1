@@ -362,13 +362,13 @@ if (!($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus | Where-Object { $_.Displa
 # Add a new option in the Add-ons menu to restore session.
 if (!($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus | Where-Object { $_.DisplayName -eq "Restore ISE Session" }))
 {
-    $psise.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Restore ISE Session", {Import-ISEState -FileName ([Environment]::GetFolderPath("MyDocuments") + "\files.isexml")} , "Ctrl+Alt+R") | Out-Null
+    $psise.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Restore ISE Session", {Close-AllISEFiles; Import-ISEState -FileName ([Environment]::GetFolderPath("MyDocuments") + "\files.isexml")} , "Ctrl+Alt+R") | Out-Null
 }
 
 # Add a new option in the Add-ons menu to open a specific session.
 if (!($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus | Where-Object { $_.DisplayName -eq "Open ISE Session..." }))
 {
-    $psise.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Open ISE Session...", {Import-ISEState -FileName (Open-FileDialog -Filter "XML Files|*.xml|All Files|*.*")} , "Ctrl+Alt+O") | Out-Null
+    $psise.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Open ISE Session...", {Close-AllISEFiles; Import-ISEState -FileName (Open-FileDialog -Filter "XML Files|*.xml|All Files|*.*")} , "Ctrl+Alt+O") | Out-Null
 }
 
 # Add a new option in the Add-ons menu to save all opened files.
