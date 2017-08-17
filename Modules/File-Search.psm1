@@ -2,13 +2,11 @@
 
 <# 
     .SYNOPSIS 
-    This script is used to search know code-based files for text within.  The results are logged to a file and that file is displayed in the console.
-    
-  
+    This cmdlet is used to search know code-based files for text within.  The results are logged to a file and that file is displayed in the console.
+
     .DESCRIPTION 
-    By default this script will search known code or code-related files, recursively from a given path and return a list of files that contain the search text.
-    
-  
+    By default this cmdlet will search known code or code-related files, recursively from a given path and return a list of files that contain the search text.
+
     .PARAMETER Path 
     Path to search in.  If no path given, uses the current directory as starting point.
 
@@ -29,7 +27,7 @@
     Find-Code -Path c:\src -Text "env:path"
   
     .NOTES 
-    Company: Deltaware Systems. Copyright (c) DeltaWare Systems Inc. All Rights Reserved.
+    
     Author: Michael Metcalfe
     Date: March 10, 2016
 #>
@@ -98,15 +96,14 @@ param (
     }
 }
 
+New-Alias -Name fcode -Value Find-Code -Description "Find text in code files."
 
 <# 
     .SYNOPSIS 
-    This script is used to search know log-based files for text within.  The results are logged to a file and that file is displayed in the console.
-    
-  
+    This cmdlet is used to search know log-based files for text within.  The results are logged to a file and that file is displayed in the console.
+
     .DESCRIPTION 
     By default this script will search known log or log-related files, recursively from a given path and return a list of files that contain the search text.
-    
   
     .PARAMETER Path 
     Path to search in.  If no path given, uses the current directory as starting point.
@@ -128,7 +125,7 @@ param (
     Find-Log -Path c:\rm\logs -Text "env:path"
   
     .NOTES 
-    Company: Deltaware Systems. Copyright (c) DeltaWare Systems Inc. All Rights Reserved.
+    
     Author: Michael Metcalfe
     Date: March 10, 2016
 #>
@@ -174,11 +171,11 @@ param (
         Get-Content $Results
     }
 }
+New-Alias -Name flog -Value Find-Log -Description "Find text in log files."
 
 <# 
     .SYNOPSIS 
-    This script is used to search for files.  The results are logged to a file and that file is displayed in the console.
-  
+    This cmdlet is used to search for files.  The results are logged to a file and that file is displayed in the console.
   
     .PARAMETER Path 
     Path to search in.  If no path given, uses the current directory as starting point.
@@ -194,7 +191,7 @@ param (
     Find-Log -Path c:\rm\logs -Text "env:path"
   
     .NOTES 
-    Company: Deltaware Systems. Copyright (c) DeltaWare Systems Inc. All Rights Reserved.
+    
     Author: Michael Metcalfe
     Date: March 10, 2016
 #>
@@ -242,4 +239,6 @@ param (
     }
 }
 
-Export-ModuleMember -function Find-Log, Find-Code, Find-File -alias fl, fc, ff
+New-Alias -Name ffile -Value Find-File -Description "Find files."
+
+Export-ModuleMember -function Find-Log, Find-Code, Find-File -Alias fcode, flog, ffile
