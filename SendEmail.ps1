@@ -29,7 +29,7 @@ $txtFromEmail = New-Object System.Windows.Forms.TextBox
 $txtFromEmail.Location = New-Object System.Drawing.Size((340 + 5),20) 
 $txtFromEmail.Size = New-Object System.Drawing.Size(200,20) 
 $txtFromEmail.Name = 'txtFrom'
-$txtFromEmail.Text = 'michael.metcalfe@maximuscanada.ca'
+$txtFromEmail.Text = ''
 $objForm.Controls.Add($txtFromEmail) 
 
 #endregion
@@ -47,14 +47,14 @@ $txtToName = New-Object System.Windows.Forms.TextBox
 $txtToName.Location = New-Object System.Drawing.Size(($leftTextPos + 5),50) 
 $txtToName.Size = New-Object System.Drawing.Size(200,20) 
 $txtToName.Name = 'txtTo'
-$txtToName.Text = 'Michael Metcalfe'
+$txtToName.Text = ''
 $objForm.Controls.Add($txtToName) 
 
 $txtToEmail = New-Object System.Windows.Forms.TextBox 
 $txtToEmail.Location = New-Object System.Drawing.Size((340 + 5),50) 
 $txtToEmail.Size = New-Object System.Drawing.Size(200,20) 
 $txtToEmail.Name = 'txtTo'
-$txtToEmail.Text = 'michael.metcalfe@maximuscanada.ca'
+$txtToEmail.Text = ''
 $objForm.Controls.Add($txtToEmail) 
 
 #endregion
