@@ -29,8 +29,6 @@ param (
 Import-Module $PSScriptRoot\Modules\Image-Functions.psm1 -Force
 Import-Module BitsTransfer
 
-"path: $DestinationPath"
-
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
 
@@ -106,17 +104,17 @@ foreach ($subreddit in $subreddits)
 }
 
 # Remove any images that are below the desired resolution
-#(Get-ChildItem -Path $DestinationPath -Filter *.jpg).FullName | % {
-#    $fileDate = (Get-ChildItem $_).CreationTime;
-#    $retentionDate = (Get-date).AddDays($RetentionDays * -1);
-#
-#    $img = [Drawing.Image]::FromFile($_);
-#    if (($img.Width -lt $MinimumWidth -OR $img.Height -lt $MinimumHeight) -or ($fileDate -lt $retentionDate))
-#    {
-#        Write-Debug (("{0} is smaller than {1} x {2} or is older than {3} days.") -f ($_, $MinimumHeight, $MinimumWidth, $RetentionDays))
-#        Remove-Item $_ -Force -ErrorAction SilentlyContinue
-#    }
-#}
+(Get-ChildItem -Path $DestinationPath -Filter *.jpg).FullName | % {
+    $fileDate = (Get-ChildItem $_).CreationTime;
+    $retentionDate = (Get-date).AddDays($RetentionDays * -1);
+
+    $img = [Drawing.Image]::FromFile($_);
+    if (($img.Width -lt $MinimumWidth -OR $img.Height -lt $MinimumHeight) -or ($fileDate -lt $retentionDate))
+    {
+        Write-Debug (("{0} is smaller than {1} x {2} or is older than {3} days.") -f ($_, $MinimumHeight, $MinimumWidth, $RetentionDays))
+        Remove-Item $_ -Force -ErrorAction SilentlyContinue
+    }
+}
 
 #region APOD Image retrieval
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
