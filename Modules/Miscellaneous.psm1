@@ -1,37 +1,37 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
 
-<#
-.SYNOPSIS
-Move the mouse a random amount in X/Y.
-
-.DESCRIPTION
-This script will move the mouse a random amount from its current location at a set interval for a set amount of time.
-
-.PARAMETER Duration
-The amount of time, in minutes to perform the mouse-move.
-
-.PARAMETER  ActionTime
-The amount of time, in seconds, between each interval of moving the mouse.
-
-.PARAMETER  Silent
-Whether or not to display output.  If true, no output is displayed.
-
-.EXAMPLE
-PS C:\> Block-Idle -Duration 1 -ActionTime 5
-Will move the mouse every 5 seconds for 1 minute.
-
-.NOTES
-NAME        :  Block-Idle
-VERSION     :  1.0   
-LAST UPDATED:  6/5/2017
-AUTHOR      :  Michael Metcalfe
-.INPUTS
-None
-.OUTPUTS
-None
-#>
 function Block-Idle
 {
+    <#
+    .SYNOPSIS
+    Move the mouse a random amount in X/Y.
+
+    .DESCRIPTION
+    This script will move the mouse a random amount from its current location at a set interval for a set amount of time.
+
+    .PARAMETER Duration
+    The amount of time, in minutes to perform the mouse-move.
+
+    .PARAMETER  ActionTime
+    The amount of time, in seconds, between each interval of moving the mouse.
+
+    .PARAMETER  Silent
+    Whether or not to display output.  If true, no output is displayed.
+
+    .EXAMPLE
+    PS C:\> Block-Idle -Duration 1 -ActionTime 5
+    Will move the mouse every 5 seconds for 1 minute.
+
+    .NOTES
+    NAME        :  Block-Idle
+    VERSION     :  1.0   
+    LAST UPDATED:  6/5/2017
+    AUTHOR      :  Michael Metcalfe
+    .INPUTS
+    None
+    .OUTPUTS
+    None
+    #>
     [CmdletBinding()]
     param (
         $Duration = 1,  # How long (in minutes) to perform the action
@@ -63,6 +63,8 @@ function Block-Idle
         [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point(($newX) , ($newY))
     }
 }
+New-Alias -Name noidle -Value Block-Idle -Description "Keep PC from going idle."
+
 function Show-Pause
 {
     [CmdletBinding()]
@@ -85,43 +87,44 @@ function Show-Pause
         Write-Host ""
     }
 }
+New-Alias -Name spause -Value Show-Pause -Description "Show a pause message or dialog."
 
-<#
-    .SYNOPSIS
-    Clear variables and modules.
-
-    .DESCRIPTION
-    This cmdlet will clear all variables and modules from the current console session.
-
-    .PARAMETER ClearVariables
-    Clear variables from the current session.
-
-    .PARAMETER  ClearModules
-    Clear modules from the current session.
-
-    .PARAMETER ReloadProfile
-    After clearing items, load the default PowerShell profile file.
-
-    .EXAMPLE
-    PS C:\> Clear-Session
-    Will clear all variables and modules from the current console session.
-
-    .EXAMPLE
-    PS C:\> Clear-Session -ClearVariables
-    Will clear all variables current console session.
-
-    .NOTES
-    NAME        :  Clear-Session
-    VERSION     :  1.0   
-    LAST UPDATED:  7/12/2017
-    AUTHOR      :  Michael Metcalfe
-    .INPUTS
-    None
-    .OUTPUTS
-    None
-#>
 function Clear-Session()
 {
+    <#
+        .SYNOPSIS
+        Clear variables and modules.
+
+        .DESCRIPTION
+        This cmdlet will clear all variables and modules from the current console session.
+
+        .PARAMETER ClearVariables
+        Clear variables from the current session.
+
+        .PARAMETER  ClearModules
+        Clear modules from the current session.
+
+        .PARAMETER ReloadProfile
+        After clearing items, load the default PowerShell profile file.
+
+        .EXAMPLE
+        PS C:\> Clear-Session
+        Will clear all variables and modules from the current console session.
+
+        .EXAMPLE
+        PS C:\> Clear-Session -ClearVariables
+        Will clear all variables current console session.
+
+        .NOTES
+        NAME        :  Clear-Session
+        VERSION     :  1.0   
+        LAST UPDATED:  7/12/2017
+        AUTHOR      :  Michael Metcalfe
+        .INPUTS
+        None
+        .OUTPUTS
+        None
+    #>
     [CmdletBinding()]
     param
     (
@@ -160,4 +163,4 @@ function Clear-Session()
 }
 
 #ls *.log | Select-String @("^.{2,3}-\d{4,5}", "exit code: (1|2|3|4)")
-Export-ModuleMember -Function Block-Idle, Show-Pause, Clear-Session
+Export-ModuleMember -Function * -Alias *
