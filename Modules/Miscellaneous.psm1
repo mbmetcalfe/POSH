@@ -162,5 +162,64 @@ function Clear-Session()
     }
 }
 
+function Send-PhoneCommand
+{
+    <#
+        .SYNOPSIS
+        Perform a Tasker command on a specific phone.
+
+        .DESCRIPTION
+        Using Join's API, send a Tasker command to an identified phone.  For this to work, Tasker has
+        to be setup to accept a command via the Join push.
+        See this URL on how to set this up: http://forum.joaoapps.com/index.php?resources/run-any-task-from-any-autoapp.139/
+
+        .PARAMETER PhoneName
+        The name of the phone that the command will get sent to.
+
+        .PARAMETER  Command
+        The Tasker command to execute.
+
+        .EXAMPLE
+        PS C:\> Send-PhoneCommand -PhoneName Home -Command "Work Mode On"
+        Execute the Tasker command "Work Mode On" on the "Home" phone.
+
+        .NOTES
+        NAME        :  Send-PhoneCommand
+        VERSION     :  1.0   
+        LAST UPDATED:  18/08/2017
+        AUTHOR      :  Michael Metcalfe
+        .INPUTS
+        None
+        .OUTPUTS
+        None
+    #>
+    param
+    (
+        [Parameter(Mandatory=$true)]
+        [ValidateSet("Work", "Home")]
+        [string]$PhoneName,
+        [Parameter(Mandatory=$true)]
+        [ValidateSet("Mute", "UnMute", "Work Mode On", "Work Mode Off")]
+        [string]$Command
+    )
+    $SendPhoneConfigFile = ([Environment]::GetFolderPath("MyDocuments") + "\send_phone.xml")
+
+    [xml]$ConfigFile = Get-Content $SendPhoneConfigFile
+<#    $SendPhoneSettings = @{
+        SendPhoneAPIKey = $ConfigFile.config.APIKey
+    }
+#>
+    # TODO: Add the phone names and device names to the config file, maybe the list of commands as well.
+    $SendPhoneAPIKey = [string]$ConfigFile.config.APIKey
+
+    $deviceName = "SM-J320W8"
+    switch($PhoneName)
+    {
+        "Work" { $deviceName = "SM-J320W8" }
+        "Home" { $deviceName = "Galaxy S5 Neo" }
+    }
+    $null = Invoke-WebRequest -Uri (("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush?deviceNames={0}&deviceId=group.phone&text=task%3D%3A%3D{1}&apikey={2}") -f ($deviceName, $Command, $SendPhoneAPIKey)) -Method Post
+}
+
 #ls *.log | Select-String @("^.{2,3}-\d{4,5}", "exit code: (1|2|3|4)")
 Export-ModuleMember -Function * -Alias *
