@@ -196,19 +196,14 @@ function Send-PhoneCommand
     param
     (
         [Parameter(Mandatory=$true)]
-        [ValidateSet("Work", "Home")]
         [string]$PhoneName,
         [Parameter(Mandatory=$true)]
-        [ValidateSet("Mute", "UnMute", "Work Mode On", "Work Mode Off")]
         [string]$Command
     )
     $SendPhoneConfigFile = ([Environment]::GetFolderPath("MyDocuments") + "\send_phone.xml")
 
     [xml]$ConfigFile = Get-Content $SendPhoneConfigFile
-<#    $SendPhoneSettings = @{
-        SendPhoneAPIKey = $ConfigFile.config.APIKey
-    }
-#>
+
     # TODO: Add the phone names and device names to the config file, maybe the list of commands as well.
     $SendPhoneAPIKey = [string]$ConfigFile.config.APIKey
 
@@ -219,6 +214,29 @@ function Send-PhoneCommand
         "Home" { $deviceName = "Galaxy S5 Neo" }
     }
     $null = Invoke-WebRequest -Uri (("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush?deviceNames={0}&deviceId=group.phone&text=task%3D%3A%3D{1}&apikey={2}") -f ($deviceName, $Command, $SendPhoneAPIKey)) -Method Post
+}
+
+function Get-PhoneCommands
+{
+    param
+    (
+        [Parameter(Mandatory=$true)]
+        [string]$PhoneName
+    )
+    $SendPhoneConfigFile = ([Environment]::GetFolderPath("MyDocuments") + "\send_phone.xml")
+
+    [xml]$ConfigFile = Get-Content $SendPhoneConfigFile
+    $commands = ($ConfigFile.config.phones.phone | where name -eq $PhoneName).commands
+
+    if (!$commands)
+    {
+        Write-Debug "No commands found for $PhoneName."
+        return $null
+    }
+    else
+    {
+        return $commands
+    }
 }
 
 #ls *.log | Select-String @("^.{2,3}-\d{4,5}", "exit code: (1|2|3|4)")
