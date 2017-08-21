@@ -174,7 +174,10 @@ function Send-PhoneCommand
         See this URL on how to set this up: http://forum.joaoapps.com/index.php?resources/run-any-task-from-any-autoapp.139/
 
         .PARAMETER PhoneName
-        The name of the phone that the command will get sent to.
+        The friendly name of the phone that the command will get sent to.
+
+        .PARAMETER DeviceName
+        The device name of the phone that the command will get sent to.
 
         .PARAMETER  Command
         The Tasker command to execute.
@@ -193,51 +196,151 @@ function Send-PhoneCommand
         .OUTPUTS
         None
     #>
+    [CmdletBinding(DefaultParameterSetName='ByPhoneName')]
     param
     (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true, ParameterSetName = 'ByPhoneName')]
         [string]$PhoneName,
-        [Parameter(Mandatory=$true)]
-        [string]$Command
-    )
-    $SendPhoneConfigFile = ([Environment]::GetFolderPath("MyDocuments") + "\send_phone.xml")
 
+        [Parameter(Mandatory = $true, ParameterSetName = 'ByDeviceName')]
+        [string]$DeviceName,
+
+        [Parameter(Mandatory=$true)]
+        [string]$Command,
+
+        [switch]$Force
+    )
+
+    $SendPhoneConfigFile = ([Environment]::GetFolderPath("MyDocuments") + "\send_phone.xml")
     [xml]$ConfigFile = Get-Content $SendPhoneConfigFile
 
-    # TODO: Add the phone names and device names to the config file, maybe the list of commands as well.
     $SendPhoneAPIKey = [string]$ConfigFile.config.APIKey
 
-    $deviceName = "SM-J320W8"
-    switch($PhoneName)
+    # Get the actual device name to send to.
+    if ($PhoneName -and !$DeviceName)
     {
-        "Work" { $deviceName = "SM-J320W8" }
-        "Home" { $deviceName = "Galaxy S5 Neo" }
+        $DeviceName = ($ConfigFile.config.phones.phone | where name -eq $PhoneName).device_name        
     }
-    $null = Invoke-WebRequest -Uri (("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush?deviceNames={0}&deviceId=group.phone&text=task%3D%3A%3D{1}&apikey={2}") -f ($deviceName, $Command, $SendPhoneAPIKey)) -Method Post
+
+    # If user asks to Force the command we don't need to lookup if the command is valid or not.
+    if (!$Force)
+    {
+        # To check if "command" is a command in at least one of the phones' list:
+        # $ConfigFile.config.phones.phone.commands.command -contains "COMMAND"
+        if (!((Get-PhoneCommands -DeviceName $DeviceName) -contains $Command))
+        {
+            Write-Error "$Command is not a valid command for $(if ($PhoneName) {$PhoneName} elseif ($DeviceName) {$DeviceName} else {" ?? "})"
+            return $null
+        }
+    }
+
+    $null = Invoke-WebRequest -Uri (("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush?deviceNames={0}&text=task%3D%3A%3D{1}&apikey={2}") -f ($DeviceName, $Command, $SendPhoneAPIKey)) -Method Post
+    # To send to all phones, use this URL:
+    #https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush?deviceId=group.phone&text=task%3D%3A%3DCOMMAND&apikey=API_KEY
 }
+New-Alias -Name phonecmd -Value Send-PhoneCommand -Description "Send a Tasker command to a phone."
+New-Alias -Name spc -Value Send-PhoneCommand -Description "Send a Tasker command to a phone."
 
 function Get-PhoneCommands
 {
+    <#
+        .SYNOPSIS
+        Get support list of Tasker commands on a specific phone.
+
+        .DESCRIPTION
+        Get the list of possible commands to send with the Send-PhoneCommand cmdlet.
+        The commands are stored in "MyDocuments\send_phone.xml".
+
+        .PARAMETER PhoneName
+        The friendly name of the phone being queried.
+
+        .PARAMETER DeviceName
+        The device name of the phone being queried.
+
+        .EXAMPLE
+        PS C:\> Get-PhoneCommands -PhoneName Home
+        Get the list of commands for the "Home" phone.
+
+        .EXAMPLE
+        PS C:\> Get-PhoneCommands -DeviceName
+        Get the list of commands for the "SM-J320W8" device.
+
+        .NOTES
+        NAME        :  Get-PhoneCommands
+        VERSION     :  1.0   
+        LAST UPDATED:  18/08/2017
+        AUTHOR      :  Michael Metcalfe
+        .INPUTS
+        This command requires a configuration file with the phones and commands in it.  
+        It should be stored in "MyDocuments\send_phone.xml".  The general format is as follows:
+
+            <config>
+              <APIKey>abcdef1234hasdf</APIKey>
+              <phones>
+                <phone name='Home' device_name='Galaxy S8'>
+                    <commands>
+                        <command>Home Mode On</command>
+                        <command>Home Mode Off</command>
+                        <command>Turn On The Lights</command>
+                        <command>Turn Off The Lights</command>
+                    </commands>
+                </phone>
+
+                <phone name='Work' device_name='SM-J320W8'>
+                    <commands>
+                        <command>Work Mode On</command>
+                        <command>Work Mode Off</command>
+                        <command>Meeting Mode</command>
+                        <command>Mute</command>
+                        <command>UnMute</command>
+                    </commands>
+                </phone>
+              </phones>
+            </config>
+
+        .OUTPUTS
+        None
+    #>
+    [CmdletBinding(DefaultParameterSetName='ByPhoneName')]
     param
     (
-        [Parameter(Mandatory=$true)]
-        [string]$PhoneName
+        [Parameter(Mandatory = $true, ParameterSetName = 'ByPhoneName')]
+        [string]$PhoneName,
+        [Parameter(Mandatory = $true, ParameterSetName = 'ByDeviceName')]
+        [string]$DeviceName
     )
     $SendPhoneConfigFile = ([Environment]::GetFolderPath("MyDocuments") + "\send_phone.xml")
+    if (!(Test-Path $SendPhoneConfigFile))
+    {
+        Write-Error "Could not find input file '$SendPhoneConfigFile'."
+        return $null
+    }
 
     [xml]$ConfigFile = Get-Content $SendPhoneConfigFile
-    $commands = ($ConfigFile.config.phones.phone | where name -eq $PhoneName).commands
+    if ($PhoneName)
+    {
+        $commands = ($ConfigFile.config.phones.phone | where name -eq $PhoneName).commands
+    }
+    elseif ($DeviceName)
+    {
+        $commands = ($ConfigFile.config.phones.phone | where device_name -eq $DeviceName).commands
+    }
+    else
+    {
+        $commands = $null
+    }
 
     if (!$commands)
     {
-        Write-Debug "No commands found for $PhoneName."
+        Write-Debug "No commands found for $(if ($PhoneName) {$PhoneName} elseif ($DeviceName) {$DeviceName} else {" ?? "})."
         return $null
     }
     else
     {
-        return $commands
+        return $commands.command
     }
 }
+New-Alias -Name gpc -Value Get-PhoneCommands -Description "Get list of available Tasker commands that can be sent to a phone."
 
 #ls *.log | Select-String @("^.{2,3}-\d{4,5}", "exit code: (1|2|3|4)")
 Export-ModuleMember -Function * -Alias *
