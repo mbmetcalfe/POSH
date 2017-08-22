@@ -1,5 +1,7 @@
 ﻿Import-Module $PSScriptRoot\IOUTilties.psm1
 
+$DefaultISESessionFile = ([Environment]::GetFolderPath("MyDocuments") + "\files.isexml")
+
 function Save-AllISEFiles
 {
     <#
@@ -237,6 +239,7 @@ function Import-ISEState
 if (!($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus | Where-Object { $_.DisplayName -eq "Save ISE Session" }))
 {
     $psise.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Save ISE Session", {Export-ISEState -FileName ([Environment]::GetFolderPath("MyDocuments") + "\files.isexml")} , "Ctrl+Alt+S") | Out-Null
+#    $psise.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Save ISE Session", {Export-ISEState -FileName $Script:$DefaultISESessionFile} , "Ctrl+Alt+S") | Out-Null
 }
 
 # Add a new option in the Add-ons menu to save session.
@@ -249,6 +252,7 @@ if (!($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus | Where-Object { $_.Displa
 if (!($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus | Where-Object { $_.DisplayName -eq "Restore ISE Session" }))
 {
     $psise.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Restore ISE Session", {Close-AllISEFiles; Import-ISEState -FileName ([Environment]::GetFolderPath("MyDocuments") + "\files.isexml")} , "Ctrl+Alt+R") | Out-Null
+#    $psise.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Restore ISE Session", {Close-AllISEFiles; Import-ISEState -FileName $DefaultISESessionFile} , "Ctrl+Alt+R") | Out-Null
 }
 
 # Add a new option in the Add-ons menu to open a specific session.

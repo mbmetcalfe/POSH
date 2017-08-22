@@ -1,5 +1,7 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
 
+$SendPhoneConfigFile = ([Environment]::GetFolderPath("MyDocuments") + "\send_phone.xml")
+
 function Block-Idle
 {
     <#
@@ -211,7 +213,12 @@ function Send-PhoneCommand
         [switch]$Force
     )
 
-    $SendPhoneConfigFile = ([Environment]::GetFolderPath("MyDocuments") + "\send_phone.xml")
+    if (!(Test-Path $SendPhoneConfigFile))
+    {
+        Write-Error (("Could not find input file '{0}'.") -f ($SendPhoneConfigFile))
+        return $null
+    }
+
     [xml]$ConfigFile = Get-Content $SendPhoneConfigFile
 
     $SendPhoneAPIKey = [string]$ConfigFile.config.APIKey
@@ -309,10 +316,10 @@ function Get-PhoneCommands
         [Parameter(Mandatory = $true, ParameterSetName = 'ByDeviceName')]
         [string]$DeviceName
     )
-    $SendPhoneConfigFile = ([Environment]::GetFolderPath("MyDocuments") + "\send_phone.xml")
+    
     if (!(Test-Path $SendPhoneConfigFile))
     {
-        Write-Error "Could not find input file '$SendPhoneConfigFile'."
+        Write-Error (("Could not find input file '{0}'.") -f ($SendPhoneConfigFile))
         return $null
     }
 
@@ -341,6 +348,86 @@ function Get-PhoneCommands
     }
 }
 New-Alias -Name gpc -Value Get-PhoneCommands -Description "Get list of available Tasker commands that can be sent to a phone."
+
+Function Format-Document
+{
+    <#
+        .SYNOPSIS
+        Fix the indentation in the document.
+
+        .DESCRIPTION
+        Adjust all the indentation in the document.  If there is text selected, the formatting will only
+        be applied to the selected text.
+
+        .PARAMETER Spaces
+        The number of spaces used for a level of indentation.
+
+        .NOTES
+        NAME        :  Format-Document
+        VERSION     :  1.0   
+        LAST UPDATED:  22/08/2017
+        AUTHOR      :  Michael Metcalfe
+        Source      :  http://rnicholson.net/powershell-ise-formating-the-document/
+        .INPUTS
+        None
+        .OUTPUTS
+        None
+    #>
+    Param
+    (
+        [int]$Spaces = 4
+    )
+    $tab = " " * $Spaces
+    [int]$numtab = 0
+
+    # Grab selected text by default.
+    $text = $psISE.CurrentFile.editor.SelectedText
+    # If selected text is empty, use the entire document
+    if ($text.length -eq 0)
+    {
+        $text = $psISE.CurrentFile.editor.Text
+    }
+    else
+    {
+        # Determine how much indent there is at the beginning of the selected text
+        # and use it as the baseline for the indentation.
+        $numSpaces = $psISE.CurrentFile.Editor.SelectedText.Length - $psISE.CurrentFile.Editor.SelectedText.TrimStart().Length
+        # Assume there was extra spaces after desired indentation
+        $numtab = [Math]::Floor($numSpaces / $Spaces)
+    }
+
+    foreach ($l in $text -split [environment]::newline)
+    {
+        $line = $l.Trim()
+        
+        if ($line.StartsWith("}") -or $line.EndsWith("}"))
+        {
+            $numtab -= 1
+        }
+
+        $tab = " " * (($Spaces) * $numtab)
+        if($line.StartsWith(".") -or $line.StartsWith("< #") -or $line.StartsWith("#>"))
+        {
+            $tab = $tab.Substring(0, $tab.Length - 1)
+        }
+
+        $newText += "{0}{1}" -f (($tab) + $line),[environment]::newline
+        if ($line.StartsWith("{") -or $line.EndsWith("{"))
+        {
+            $numtab += 1
+        }
+        if ($numtab -lt 0)
+        {
+            $numtab = 0
+        }
+    }
+
+    if ($psISE.CurrentFile.editor.SelectedText.Length -eq 0)
+    {
+        $psISE.CurrentFile.Editor.Clear()
+    }
+    $psISE.CurrentFile.Editor.InsertText($newText)
+}
 
 #ls *.log | Select-String @("^.{2,3}-\d{4,5}", "exit code: (1|2|3|4)")
 Export-ModuleMember -Function * -Alias *
