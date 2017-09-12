@@ -1,5 +1,5 @@
 ﻿$inputFile = "C:\Users\MBMETCAL\Downloads\LEGO Sets - Complete.csv"
-$url = "https://brickset.com/sets/70001";
+#$url = "https://brickset.com/sets/70001";
 #$url = "https://www.bricklink.com/v2/catalog/catalogitem.page?S=70001-1#T=P"
 
 $LEGOList = Import-Csv $inputFile
@@ -8,21 +8,22 @@ $LEGOList = Import-Csv $inputFile
 
 foreach ($row in $LEGOList)
 {
-    Write-Debug "Looking up price for $($row.Set)";
+    #Write-Debug "Looking up price for $($row.Set) ($($row.'Set #'))";
     $content = $null;
     $getContent = $null;
     try
     {
+        $url = "https://brickset.com/sets/{0}" -f ($($row.'Set #'));
         # Retrieve the web page for the set
         $getContent = (iwr -Uri $url -UseBasicParsing);
         #$content = ConvertTo-Xml -InputObject $content.RawContent;
-        [xml]$content = $getContent.Content;
+        $content = $getContent.Content;
         # parse the section that contains the prices
-        $innerText = ($content.ParsedHtml.getElementsByTagName('a') | Where{ $_.className -eq 'plain' } ).innerText;
+###        $innerText = ($content.ParsedHtml.getElementsByTagName('a') | Where{ $_.className -eq 'plain' } ).innerText;
         ## //*[@id="_idStoreResultListSection"]/table/tbody/tr[3]/td[5]/text()
 
 
-        "New: {0}; Used: {1}" -f ($innerText[2], $innerText[3])
+        "$($row.Set) ($($row.'Set #')): New: {0}; Used: {1}" -f ($innerText[2], $innerText[3])
     }
     catch
     {
