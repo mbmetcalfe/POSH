@@ -7,13 +7,19 @@
     It will also download NASA's A Picture of the Day.
     
     .PARAMETER $MinimumWidth
+    Minimum image width.  This is used when determining which images to retain.
 
     .PARAMETER $MinimumHeight
+    Minimum image height.  This is used when determining which images to retain.
 
     .PARAMETER $NumberOfImages
+    The number of images to retrieve when getting subreddit images.
+
+    .PARAMETER $Subreddits
+    An array of subreddits.  Works best if subreddits dedicated to posting images is used (e.g. Wallpapers, BackgroundArt, Breathless, etc).
 
     .PARAMETER $DestinationPath
-
+    The folder path where downloaded images will be saved.
   
     .NOTES 
     Author: Michael Metcalfe
@@ -23,7 +29,8 @@ param (
     $MinimumWidth = 1680,
     $MinimumHeight = 1050,
     $NumberOfImages = 5,
-    $RetentionDays = 7,
+    $RetentionDays = 10,
+    [string[]]$Subreddits = @("BackgroundArt", "EarthPorn", "Breathless", "Wallpapers", "SpacePorn", "BigWallpapers"),
     [string]$DestinationPath = [environment]::getfolderpath("MyPictures")+"\BackgroundDump"
 )
 Import-Module $PSScriptRoot\Modules\Image-Functions.psm1 -Force
@@ -33,7 +40,6 @@ Import-Module BitsTransfer
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
 
 $NET_ADAPTER_NAME = 'Intel(R) Dual Band Wireless-AC 7265';
-$subreddits = @("BackgroundArt", "EarthPorn", "Breathless", "Wallpapers", "SpacePorn", "BigWallpapers");
 $APOD_API_KEY = 'GWJpmhJe5s58fbZ5e6wNMmr8NU07l2S08NjLgCLV';
 
 $InformationPreference = "Continue"
@@ -51,7 +57,7 @@ if (!$connected)
 {
     if ($env:COMPUTERNAME -eq "E386091") # Work PC
     {
-        # Just a hack to start a random internet connection
+        # Just a hack to start a random internet connection.
         $tempPage = (iwr -Uri "http://www.cbc.ca/pei")
         Start-Sleep -Seconds 60
     }
@@ -79,7 +85,7 @@ while (!$connected)
 }
 #endregion
 
-foreach ($subreddit in $subreddits)
+foreach ($subreddit in $Subreddits)
 {
     $url = "https://www.reddit.com/r/{0}/top/.json" -f ($subreddit)
 
