@@ -1,4 +1,4 @@
-<# 
+﻿<# 
     .SYNOPSIS 
     Download images from some subreddits and NASA's APOD that can then be used for desktop backgrounds.
   

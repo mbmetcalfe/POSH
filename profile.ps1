@@ -77,6 +77,8 @@ if ($host.Name -eq 'Windows PowerShell ISE Host')
     Import-Module "$ScriptRootPath\Modules\ISEUtilities.psm1"
     Import-Module "$ScriptRootPath\Modules\CommentSelectedLines.psm1" -DisableNameChecking
 
+    $psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Format Code", {Format-Document}, "Ctrl+Alt+P") | Out-Null
+
     # And, let's restore the last opened files too
     Import-ISEState -FileName ([Environment]::GetFolderPath("MyDocuments") + "\files.isexml")
 
