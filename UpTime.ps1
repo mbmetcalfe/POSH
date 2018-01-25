@@ -6,11 +6,10 @@
     This script will check how long the current machine has been running without a reboot.
     There is a check to see what the longest uptime was and both the current uptime and the 
     maximum uptime for the machine can be displayed.
-    
-  
+
     .PARAMETER Silent 
     If true, no output is displayed.
-  
+
     .NOTES 
     Author: Michael Metcalfe
     Date: April 24, 2017

@@ -7,13 +7,19 @@
     It will also download NASA's A Picture of the Day.
     
     .PARAMETER $MinimumWidth
+    Minimum image width.  This is used when determining which images to retain.
 
     .PARAMETER $MinimumHeight
+    Minimum image height.  This is used when determining which images to retain.
 
     .PARAMETER $NumberOfImages
+    The number of images to retrieve when getting subreddit images.
+
+    .PARAMETER $Subreddits
+    An array of subreddits.  Works best if subreddits dedicated to posting images is used (e.g. Wallpapers, BackgroundArt, Breathless, etc).
 
     .PARAMETER $DestinationPath
-
+    The folder path where downloaded images will be saved.
   
     .NOTES 
     Author: Michael Metcalfe
@@ -23,7 +29,8 @@ param (
     $MinimumWidth = 1680,
     $MinimumHeight = 1050,
     $NumberOfImages = 5,
-    $RetentionDays = 7,
+    $RetentionDays = 10,
+    [string[]]$Subreddits = @("BackgroundArt", "EarthPorn", "Breathless", "Wallpapers", "SpacePorn", "BigWallpapers"),
     [string]$DestinationPath = [environment]::getfolderpath("MyPictures")+"\BackgroundDump"
 )
 Import-Module $PSScriptRoot\Modules\Image-Functions.psm1 -Force
@@ -32,9 +39,8 @@ Import-Module BitsTransfer
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
 
-
-$NET_ADAPTER_NAME = 'Intel(R) Dual Band Wireless-AC 7265'
-$subreddits = @("BackgroundArt", "EarthPorn", "Breathless", "Wallpapers", "SpacePorn", "BigWallpapers")
+$NET_ADAPTER_NAME = 'Intel(R) Dual Band Wireless-AC 7265';
+$APOD_API_KEY = 'GWJpmhJe5s58fbZ5e6wNMmr8NU07l2S08NjLgCLV';
 
 $InformationPreference = "Continue"
 
@@ -49,9 +55,18 @@ if (!(Test-Path $DestinationPath))
 $connected = [Activator]::CreateInstance([Type]::GetTypeFromCLSID([Guid]'{DCB00C01-570F-4A9B-8D69-199FDBA5723B}')).IsConnectedToInternet
 if (!$connected)
 {
-    Write-Debug "Restarting network adapter: $NET_ADAPTER_NAME."
-    Restart-NetAdapter -InterfaceDescription $NET_ADAPTER_NAME -Confirm:$false
-    Write-Host -NoNewline "Waiting for connection." -ForegroundColor Magenta
+    if ($env:COMPUTERNAME -eq "E386091") # Work PC
+    {
+        # Just a hack to start a random internet connection.
+        $tempPage = (iwr -Uri "http://www.cbc.ca/pei")
+        Start-Sleep -Seconds 60
+    }
+    else
+    {
+        Write-Debug "Restarting network adapter: $NET_ADAPTER_NAME."
+        Restart-NetAdapter -InterfaceDescription $NET_ADAPTER_NAME -Confirm:$false
+        Write-Host -NoNewline "Waiting for connection." -ForegroundColor Magenta
+    }
 }
 
 while (!$connected)
@@ -70,7 +85,7 @@ while (!$connected)
 }
 #endregion
 
-foreach ($subreddit in $subreddits)
+foreach ($subreddit in $Subreddits)
 {
     $url = "https://www.reddit.com/r/{0}/top/.json" -f ($subreddit)
 
@@ -90,11 +105,12 @@ foreach ($subreddit in $subreddits)
                 $subredditFilename = $regex.Matches($_).Value
 
                 Write-Debug "Getting images from $subreddit." 
-                #$dateFilename = (Get-Date -Format "yyyyMMddHHmm")
-                #$fileName = ("{0}\{1}-{2}_{3}") -f ($DestinationPath, $dateFilename, $subreddit, $subredditFilename)
                 $fileName = ("{0}\{1}_{2}") -f ($DestinationPath, $subreddit, $subredditFilename)
-                Start-BitsTransfer -DisplayName "Downloading images" -Description "Getting images from reddit." -Source $_ -Destination $fileName -ErrorAction SilentlyContinue
-                #AddTextToImage -Title $postTitle -SourcePath $DestinationPath\$_ -DestinationPath $DestinationPath\$_
+                if (!(Test-Path -Path $fileName))
+                {
+                    Start-BitsTransfer -DisplayName "Downloading images" -Description "Getting images from reddit." -Source $_ -Destination $fileName -ErrorAction SilentlyContinue | Complete-BitsTransfer
+                    #AddTextToImage -Title $postTitle -SourcePath $DestinationPath\$_ -DestinationPath $DestinationPath\$_
+                }
             }
     }
     catch
@@ -103,18 +119,8 @@ foreach ($subreddit in $subreddits)
     }
 }
 
-# Remove any images that are below the desired resolution
-(Get-ChildItem -Path $DestinationPath -Filter *.jpg).FullName | % {
-    $fileDate = (Get-ChildItem $_).CreationTime;
-    $retentionDate = (Get-date).AddDays($RetentionDays * -1);
-
-    $img = [Drawing.Image]::FromFile($_);
-    if (($img.Width -lt $MinimumWidth -OR $img.Height -lt $MinimumHeight) -or ($fileDate -lt $retentionDate))
-    {
-        Write-Debug (("{0} is smaller than {1} x {2} or is older than {3} days.") -f ($_, $MinimumHeight, $MinimumWidth, $RetentionDays))
-        Remove-Item $_ -Force -ErrorAction SilentlyContinue
-    }
-}
+# Completes all the BITS transfer jobs. 
+Get-BitsTransfer | Complete-BitsTransfer
 
 #region APOD Image retrieval
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -123,7 +129,7 @@ try
     Write-Debug "Retrieving the NASA APOD image..."
     try
     {
-        $apodContent = Invoke-RestMethod -Uri "https://api.nasa.gov/planetary/apod?api_key=GWJpmhJe5s58fbZ5e6wNMmr8NU07l2S08NjLgCLV" -Method Get
+        $apodContent = Invoke-RestMethod -Uri "https://api.nasa.gov/planetary/apod?api_key=$APOD_API_KEY" -Method Get
         [regex]$regex = '[^/\\&\?]+\.\w{3,4}(?=([\?&].*$|$))'
         $APODFilename = $regex.Matches($apodContent.hdurl).Value
 
@@ -131,7 +137,10 @@ try
         {
             $dateFilename = (Get-Date -Format "yyyyMMdd")
             $fileName = ("{0}\{1}-APOD_{2}") -f ($DestinationPath, $dateFilename, $APODFilename)
-            Start-BitsTransfer -Source $apodContent.hdurl -Destination $fileName -ErrorAction SilentlyContinue -DisplayName "NASA APOD image: $apodContent.title"
+            if (!(Test-Path -Path $fileName))
+            {
+                Start-BitsTransfer -Source $apodContent.hdurl -Destination $fileName -ErrorAction SilentlyContinue -DisplayName "NASA APOD image: $apodContent.title"
+            }
         }
         else
         {
@@ -146,5 +155,42 @@ try
 catch
 {
     Write-Error "Error retrieving NASA APOD." -RecommendedAction "Try again later."
+}
+#endregion
+
+#region Remove any images that are old or below the desired resolution
+$imagePurgeList = New-Object System.Collections.ArrayList;
+
+# Gather list of files that need to be purged.
+(Get-ChildItem -Path $DestinationPath -Include ('*.png', '*.jpg') -Recurse).FullName | % {
+    $fileName = $_;
+    $fileDate = (Get-ChildItem $fileName).CreationTime;
+    $retentionDate = (Get-date).AddDays($RetentionDays * -1);
+
+    try
+    {
+        $img = [Drawing.Image]::FromFile($fileName);
+        if (($img.Width -lt $MinimumWidth -OR $img.Height -lt $MinimumHeight) -or ($fileDate -lt $retentionDate))
+        {
+            $idx = $imagePurgeList.Add($fileName);
+            Write-Debug (("{0} is smaller than {1} x {2} or is older than {3} days.") -f ($_, $MinimumHeight, $MinimumWidth, $RetentionDays))
+        }
+    }
+    catch [OutOfMemoryException]
+    {
+        Write-Warning "Could not get image dimensions for $fileName.";
+        # This exception gets thrown if  the file does not have a valid image format or if GDI+ does not support the pixel format of the file.
+        # So, just check the file date
+        if ($fileDate -lt $retentionDate)
+        {
+            $idx = $imagePurgeList.Add($fileName);
+        }
+    }
+}
+
+Write-Debug (("Purging {0} unwanted files...") -f ($imagePurgeList.Count));
+foreach ($file in $imagePurgeList)
+{
+    Remove-Item $file -Force -ErrorAction Continue;
 }
 #endregion
