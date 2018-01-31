@@ -36,7 +36,7 @@ function Find-Code
 
 param (
     [string]$Path = "",
-    [string]$Include = "('*.dpr', '*.js', '*.xml', '*.xsl', '*.xslt', '*.pck', '*.sql', '*.trg', '*.dql', '*.dpr', '*.dfm', '*.pas', '*.inc', '*.cjs', '*.htc', '*.scr', '*.thw', '*.mule')",
+    [string]$Include = "('*.dpr', '*.js', '*.xml', '*.xsl', '*.xslt', '*.pck', '*.sql', '*.trg', '*.dql', '*.dpr', '*.dfm', '*.pas', '*.inc', '*.cjs', '*.htc', '*.scr', '*.xdp', '*.xsd')",
     [switch]$CaseSensitive,
     [Parameter(Mandatory=$true, Position=1)]
     [string]$Text,
@@ -70,7 +70,7 @@ param (
     Write-Host ('Searching for: "{0}" in "{1}".  Log: "{2}"' -f ($Text, $Path, $Results))
     if ($ShowFound)
     {
-        gci -recurse -include ('*.dpr', '*.js', '*.xml', '*.xsl', '*.xslt', '*.pck', '*.sql', '*.trg', '*.dql', '*.dpr', '*.dfm', '*.pas', '*.inc', '*.cjs', '*.htc', '*.scr', '*.thw', '*.ps1', '*.psm1', '*.mule', '*.htm?') -EA SilentlyContinue| Select-String -CaseSensitive:$CaseSensitive -pattern $Text | Out-File -Append -FilePath $Results
+        gci -recurse -include ('*.dpr', '*.js', '*.xml', '*.xsl', '*.xslt', '*.pck', '*.sql', '*.trg', '*.dql', '*.dpr', '*.dfm', '*.pas', '*.inc', '*.cjs', '*.htc', '*.scr', '*.thw', '*.ps1', '*.psm1', '*.htm?', '*.xdp', '*.xsd') -EA SilentlyContinue| Select-String -CaseSensitive:$CaseSensitive -pattern $Text | Out-File -Append -FilePath $Results
 <#        foreach ($file in $files)
         {
             if (Test-Path $file)
@@ -85,7 +85,7 @@ param (
     }
     else
     {
-    gci -recurse -include ('*.dpr', '*.js', '*.xml', '*.xsl', '*.xslt', '*.pck', '*.sql', '*.trg', '*.dql', '*.dpr', '*.dfm', '*.pas', '*.inc', '*.cjs', '*.htc', '*.scr', '*.thw', '*.ps1', '*.psm1', '*.mule') -EA SilentlyContinue| Select-String -CaseSensitive:$CaseSensitive -pattern $Text | Group-Object Path | Select-Object Name | Format-Table -Property Name -AutoSize | Out-String -Width 4096 | Out-File -Append $Results
+    gci -recurse -include ('*.dpr', '*.js', '*.xml', '*.xsl', '*.xslt', '*.pck', '*.sql', '*.trg', '*.dql', '*.dpr', '*.dfm', '*.pas', '*.inc', '*.cjs', '*.htc', '*.scr', '*.thw', '*.ps1', '*.psm1', '*.xdp', '*.xsd') -EA SilentlyContinue| Select-String -CaseSensitive:$CaseSensitive -pattern $Text | Group-Object Path | Select-Object Name | Format-Table -Property Name -AutoSize | Out-String -Width 4096 | Out-File -Append $Results
     #gci -recurse -include:$Include -EA SilentlyContinue| Select-String -CaseSensitive:$CaseSensitive -pattern $Text | Group-Object Path | Select-Object Name | Format-Table -Wrap | Out-File -Append $Results
     }
 
