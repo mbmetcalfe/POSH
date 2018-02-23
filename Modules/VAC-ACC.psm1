@@ -1,3 +1,5 @@
+Add-Type -AssemblyName System.Windows.Forms;
+
 function Set-CSDNDatabase
 {
     <#
@@ -27,7 +29,6 @@ function Set-CSDNDatabase
     [CmdletBinding()]
     param
     (
-###        [Parameter(Mandatory=$true)]
         [ValidateSet("mp_dev_db", "r2ua")]
         [string]$DatabaseName
     )
@@ -110,14 +111,18 @@ function Update-CSDN
     $LOCAL_INSTALLATION_DIRECTORY = "C:\corp\csdn\MAINT_FT_FLDR\bin"
     $REMOTE_INSTALLATION_DIRECTORY = "\\VAHCMN01\CDE\corp\CSDN\MAINT_FT_FLDR\bin"
 
-    if (Get-Process -Name "csdn")
+    if (Get-Process -Name "csdn" -ErrorAction SilentlyContinue)
     {
-        Add-Type -AssemblyName System.Windows.Forms;
-        $response = [System.Windows.Forms.MessageBox]::Show('CSDN is running.  Do you want to kill it?', 'Warning', 3, 'Question')
+        if (!$Force)
+        {
+            #Add-Type -AssemblyName System.Windows.Forms;
+            $response = [System.Windows.Forms.MessageBox]::Show('CSDN is running.  Do you want to kill it?', 'Warning', 3, 'Question')
+        }
 
-        if ($response -eq 'Yes')
+        if ($response -eq 'Yes' -or $Force)
         {
             Stop-Process -Name "csdn" -Force -ErrorAction Stop;
+            Start-Sleep -Seconds 2;
         }
         elseif ($response -eq 'Cancel')
         {
