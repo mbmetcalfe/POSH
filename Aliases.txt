@@ -3,3 +3,4 @@
 # Date/Time : Thursday, August 15, 2013 9:16:38 AM
 # Machine : W-MMETCALFE
 "n++","D:\Program Files (x86)\Notepad++\notepad++.exe","","None"
+"which","Get-Command","","None"
